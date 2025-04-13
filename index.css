@@ -6,7 +6,7 @@ body{
 
 .header{
     width: 100%;
-    position: fixed;
+    position: absolute ;
     justify-content: center;
     align-items: center;
     margin: 0;
@@ -20,7 +20,7 @@ body{
     width: 90%;
     height: 700px;
     justify-content: center;
-    position: relative;
+    position: absolute;
     margin-left: 5%;
     margin-top: 10%;
 }
