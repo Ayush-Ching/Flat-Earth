@@ -26,10 +26,17 @@
     <!-- ol-mapbox-style -->
     <script src="https://unpkg.com/ol-mapbox-style/dist/olms.js"></script>
 
+
+    <link rel="stylesheet" href = "index.css">
     <title>Flat Earth</title>
 </head>
 <body>
-    <div id="map" style="width: 90%; height: 500px; justify-content: center; margin-left: 5%;"></div>
+    <div class="header">
+
+        <p align = "center">The Earth is Flat and you know it.</p>
+    </div>
+    <br>
+    <div id="map"></div>
     <script>
     const openfreemap = new ol.layer.Group();
     const map = new ol.Map({
