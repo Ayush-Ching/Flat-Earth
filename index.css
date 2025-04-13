@@ -1,5 +1,5 @@
 body{
-    background-color: #60b5ff;
+    background-color: #b3d8a8;
     margin: 0;
     padding: 0;
 }
@@ -10,14 +10,14 @@ body{
     justify-content: center;
     align-items: center;
     padding: 5px;
-    background-color: #afddff;
-    color : #23a2ff;
+    background-color: #3d8d7a;
+    color : #fbffe4;
     font-size: x-large;
 }
 
 #map{
     width: 90%;
-    height: 700px;
+    height: 500px;
     justify-content: center;
     position: absolute;
     margin-left: 5%;
