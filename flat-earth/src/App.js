@@ -1,62 +1,63 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
+function ChangeMapView({ coords }) {
+  const map = useMap();
+  map.setView(coords, 13);
+  return null;
+}
+
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [position, setPosition] = useState([51.505, -0.09]); // Default center
-  const [searchedLocation, setSearchedLocation] = useState(null);
-
-  const mapRef = useRef();
+  const [markerPosition, setMarkerPosition] = useState([48.8566, 2.3522]); // Paris
 
   const handleSearch = async (e) => {
     e.preventDefault();
 
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${searchQuery}`
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`
     );
     const data = await response.json();
 
+    console.log("Search results:", data);
+
     if (data && data.length > 0) {
-      const { lat, lon, display_name } = data[0];
-      const coords = [parseFloat(lat), parseFloat(lon)];
-      setSearchedLocation({ coords, display_name });
-      setPosition(coords);
-      if (mapRef.current) {
-        mapRef.current.setView(coords, 13);
-      }
+      const lat = Number(data[0].lat);
+      const lon = Number(data[0].lon);
+      const coords = [lat, lon];
+
+      setMarkerPosition(coords);
+    } else {
+      alert('Location not found.');
     }
   };
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Search Bar */}
-      <form onSubmit={handleSearch} style={{ padding: '10px', background: '#f0f0f0' }}>
+      <form onSubmit={handleSearch} style={{ padding: '10px', background: '#eee' }}>
         <input
           type="text"
-          placeholder="Search for a place"
           value={searchQuery}
+          placeholder="Search location"
           onChange={(e) => setSearchQuery(e.target.value)}
           style={{ padding: '8px', width: '300px' }}
         />
-        <button type="submit" style={{ padding: '8px 12px', marginLeft: '10px' }}>Search</button>
+        <button type="submit" style={{ marginLeft: '10px' }}>Search</button>
       </form>
 
-      {/* Map */}
-      <div style={{ flexGrow: 1 }}>
-        <MapContainer
-          center={position}
-          zoom={13}
-          style={{ height: '100%', width: '100%' }}
-          whenCreated={(mapInstance) => (mapRef.current = mapInstance)}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {searchedLocation && <Marker position={searchedLocation.coords} />}
-        </MapContainer>
-      </div>
+      <MapContainer
+        center={markerPosition}
+        zoom={13}
+        style={{ flex: 1 }}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+        />
+        <Marker position={markerPosition} />
+        <ChangeMapView coords={markerPosition} />
+      </MapContainer>
     </div>
   );
 }
