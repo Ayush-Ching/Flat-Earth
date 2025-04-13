@@ -1,0 +1,26 @@
+body{
+    background-color: #60b5ff;
+    margin: 0;
+    padding: 0;
+}
+
+.header{
+    width: 100%;
+    position: fixed;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    background-color: #afddff;
+    color : #23a2ff;
+    font-size: x-large;
+}
+
+#map{
+    width: 90%;
+    height: 700px;
+    justify-content: center;
+    position: relative;
+    margin-left: 5%;
+    margin-top: 10%;
+}
