@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 
 function ChangeMapView({ coords }) {
   const map = useMap();
@@ -8,9 +9,17 @@ function ChangeMapView({ coords }) {
   return null;
 }
 
+const customIcon = new L.Icon({
+  iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+  iconSize: [40, 40], // size of the icon
+  iconAnchor: [20, 40], // point of the icon which will correspond to marker's location
+  popupAnchor: [0, -40] // point from which the popup should open relative to the iconAnchor
+});
+
+
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [markerPosition, setMarkerPosition] = useState([48.8566, 2.3522]); // Paris
+  const [markerPosition, setMarkerPosition] = useState([26.51440955, 80.23178853130952]); // Paris
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -55,7 +64,7 @@ function App() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
         />
-        <Marker position={markerPosition} />
+        <Marker position={markerPosition} icon={customIcon} />
         <ChangeMapView coords={markerPosition} />
       </MapContainer>
     </div>
