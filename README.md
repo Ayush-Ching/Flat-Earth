@@ -3,6 +3,7 @@ Our objective is to prove that the earth is flat by providing a way for people t
 They can also write reviews about the flatness of the place and upload flat images of the places for others to see later.
 --------------------
 Note : Image upload does not work.
+Nother Note : You cannot delete reviews once submitted.
 --------------------
 You can visit the following link to visit the web app :
 >https://flat-earth-f635d.web.app/
