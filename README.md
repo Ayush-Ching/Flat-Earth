@@ -6,7 +6,6 @@ To use the app, clone the repo in a directory.<br>
 go to the flat-earth directory.<br>
 open command prompt in that directory.<br>
 run the following command<br>
->npm start
-<br>
+`npm start`<br>
 login to be able to see reviews<br>
 Enjoy the flat earth.
