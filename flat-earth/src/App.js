@@ -69,15 +69,31 @@ function App() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Submitted data:', formData, 'at', markerPosition);
-    alert('Submission saved (not connected to backend yet)');
+  
+    if (!markerPosition || markerPosition.length !== 2) {
+      alert("Please search for a place before submitting a review.");
+      return;
+    }
+  
+    const submission = {
+      title: formData.title,
+      review: formData.review,
+      image: formData.image,
+      coords: markerPosition,
+    };
+  
+    console.log('📍 Submitting Review for Marker:', submission);
+  
+    alert('Submitted! Check the console.');
     setFormData({ title: '', review: '', image: null });
   };
+  
+  
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* App Title */}
-      <header style={{ backgroundColor: '#333', color: '#fff', padding: '10px', fontSize: '20px' }}>
+      <header align = 'center' style={{ backgroundColor: '#333', color: '#fff', padding: '10px', fontSize: '20px' }}>
         Flat Earth 🌍
       </header>
 
