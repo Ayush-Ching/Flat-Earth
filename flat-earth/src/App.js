@@ -10,7 +10,7 @@ import {
   signOut
 } from 'firebase/auth';
 import { db, storage } from './firebase';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp, getDocs } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const customIcon = new L.Icon({
@@ -29,8 +29,10 @@ function ChangeMapView({ coords }) {
 function App() {
   const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [markerPosition, setMarkerPosition] = useState([48.8566, 2.3522]);
+  const [markerPosition, setMarkerPosition] = useState([48.8566, 2.3522]); // Default to Paris
   const [formData, setFormData] = useState({ title: '', review: '', image: null });
+  const [allLocations, setAllLocations] = useState([]);
+  const [filteredLocations, setFilteredLocations] = useState([]);
 
   const auth = getAuth();
 
@@ -40,6 +42,31 @@ function App() {
     });
     return () => unsubscribe();
   }, [auth]);
+
+  // Fetch all reviews from Firestore
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, 'locations'));
+        const locs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setAllLocations(locs);
+      } catch (err) {
+        console.error('Error fetching locations:', err);
+      }
+    };
+
+    fetchLocations();
+  }, []);
+
+  // Filter reviews by searched location
+  useEffect(() => {
+    const roundCoord = (coord) => Math.round(coord * 10000) / 10000;
+    const filtered = allLocations.filter(loc =>
+      roundCoord(loc.coords[0]) === roundCoord(markerPosition[0]) &&
+      roundCoord(loc.coords[1]) === roundCoord(markerPosition[1])
+    );
+    setFilteredLocations(filtered);
+  }, [markerPosition, allLocations]);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -84,15 +111,19 @@ function App() {
         imageUrl = await getDownloadURL(imageRef);
       }
 
-      await addDoc(collection(db, 'locations'), {
+      const newDoc = {
         title: formData.title,
         review: formData.review,
         coords: markerPosition,
         imageUrl,
         userId: user.uid,
         timestamp: serverTimestamp()
-      });
+      };
 
+      const docRef = await addDoc(collection(db, 'locations'), newDoc);
+
+      const newLocation = { id: docRef.id, ...newDoc };
+      setAllLocations(prev => [...prev, newLocation]);
       alert('Review submitted!');
       setFormData({ title: '', review: '', image: null });
     } catch (err) {
@@ -158,7 +189,7 @@ function App() {
           padding: '20px',
           background: '#f9f9f9',
           borderLeft: '1px solid #ccc',
-          boxShadow: '-2px 0 5px rgba(0,0,0,0.1)'
+          overflowY: 'auto'
         }}>
           {!user ? (
             <>
@@ -183,6 +214,21 @@ function App() {
                 </div>
                 <button type="submit" style={{ marginTop: '10px' }}>Submit</button>
               </form>
+
+              <hr />
+
+              <h4>Reviews for this location</h4>
+              {filteredLocations.length === 0 ? (
+                <p>No reviews yet for this location.</p>
+              ) : (
+                filteredLocations.slice().reverse().map(loc => (
+                  <div key={loc.id} style={{ marginBottom: '15px', borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>
+                    <strong>{loc.title}</strong>
+                    <p>{loc.review}</p>
+                    {loc.imageUrl && <img src={loc.imageUrl} alt={loc.title} style={{ width: '100%', maxHeight: '150px', objectFit: 'cover' }} />}
+                  </div>
+                ))
+              )}
             </>
           )}
         </div>
