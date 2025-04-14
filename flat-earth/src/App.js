@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { auth } from './firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 
 const customIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
@@ -26,22 +28,17 @@ function App() {
     image: null,
   });
 
+  const [user, setUser] = useState(null);
+  const [authForm, setAuthForm] = useState({ email: '', password: '' });
+
   const handleSearch = async (e) => {
     e.preventDefault();
-    console.log('Searching for:', searchQuery);
-  
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`,
-        {
-          headers: {
-            'User-Agent': 'flat-earth-app/1.0',
-          },
-        }
+        { headers: { 'User-Agent': 'flat-earth-app/1.0' } }
       );
       const data = await response.json();
-      console.log('Search results:', data);
-  
       if (data && data.length > 0) {
         const lat = Number(data[0].lat);
         const lon = Number(data[0].lon);
@@ -54,8 +51,6 @@ function App() {
       alert('Search failed');
     }
   };
-  
-  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -69,46 +64,69 @@ function App() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-  
-    if (!markerPosition || markerPosition.length !== 2) {
-      alert("Please search for a place before submitting a review.");
+    if (!user) {
+      alert("You must be logged in to submit a review.");
       return;
     }
-  
+
     const submission = {
       title: formData.title,
       review: formData.review,
       image: formData.image,
       coords: markerPosition,
+      user: user.email,
     };
-  
-    console.log('📍 Submitting Review for Marker:', submission);
-  
+
+    console.log('📍 Submitting Review:', submission);
     alert('Submitted! Check the console.');
     setFormData({ title: '', review: '', image: null });
   };
-  
-  
+
+  const handleAuthInput = (e) => {
+    const { name, value } = e.target;
+    setAuthForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSignup = async () => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, authForm.email, authForm.password);
+      setUser(userCredential.user);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleLogin = async () => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, authForm.email, authForm.password);
+      setUser(userCredential.user);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    setUser(null);
+  };
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* App Title */}
-      <header align = 'center' style={{ backgroundColor: '#333', color: '#fff', padding: '10px', fontSize: '20px' }}>
+      <header align="center" style={{ backgroundColor: '#333', color: '#fff', padding: '10px', fontSize: '20px' }}>
         Flat Earth 🌍
       </header>
 
       {/* Search Bar */}
       <form onSubmit={handleSearch} style={{ padding: '10px', background: '#eee' }}>
-      <input
-        type="text"
-        value={searchQuery}
-        placeholder="Search location"
-        onChange={(e) => setSearchQuery(e.target.value)}
-        style={{ padding: '8px', width: '300px' }}
-      />
-      <button type="submit" style={{ marginLeft: '10px' }}>Search</button>
+        <input
+          type="text"
+          value={searchQuery}
+          placeholder="Search location"
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ padding: '8px', width: '300px' }}
+        />
+        <button type="submit" style={{ marginLeft: '10px' }}>Search</button>
       </form>
-
 
       {/* Main Content: Map + Review Form */}
       <div style={{ flex: 1, display: 'flex' }}>
@@ -126,48 +144,71 @@ function App() {
           <ChangeMapView coords={markerPosition} />
         </MapContainer>
 
-        {/* Review Form Panel */}
-        <div style={{
-          width: '30%',
-          padding: '20px',
-          background: '#f9f9f9',
-          borderLeft: '1px solid #ccc',
-          boxShadow: '-2px 0 5px rgba(0,0,0,0.1)'
-        }}>
-          <h3>Add Location Info</h3>
-          <form onSubmit={handleSubmit}>
-            <div>
-              <label>Title:</label><br />
+        {/* Side Panel */}
+        <div style={{ width: '30%', padding: '20px', background: '#f9f9f9', borderLeft: '1px solid #ccc' }}>
+          {!user ? (
+            <>
+              <h3>Login / Signup</h3>
               <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                required
-                style={{ width: '100%' }}
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={authForm.email}
+                onChange={handleAuthInput}
+                style={{ width: '100%', marginBottom: '10px' }}
               />
-            </div>
-            <div>
-              <label>Review:</label><br />
-              <textarea
-                name="review"
-                value={formData.review}
-                onChange={handleInputChange}
-                rows="3"
-                required
-                style={{ width: '100%' }}
-              />
-            </div>
-            <div>
-              <label>Image:</label><br />
               <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={authForm.password}
+                onChange={handleAuthInput}
+                style={{ width: '100%', marginBottom: '10px' }}
               />
-            </div>
-            <button type="submit" style={{ marginTop: '10px' }}>Submit</button>
-          </form>
+              <button onClick={handleSignup} style={{ marginRight: '10px' }}>Sign Up</button>
+              <button onClick={handleLogin}>Log In</button>
+            </>
+          ) : (
+            <>
+              <p>Logged in as: {user.email}</p>
+              <button onClick={handleLogout} style={{ marginBottom: '20px' }}>Log Out</button>
+
+              <h3>Add Location Info</h3>
+              <form onSubmit={handleSubmit}>
+                <div>
+                  <label>Title:</label><br />
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    required
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                <div>
+                  <label>Review:</label><br />
+                  <textarea
+                    name="review"
+                    value={formData.review}
+                    onChange={handleInputChange}
+                    rows="3"
+                    required
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                <div>
+                  <label>Image:</label><br />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                  />
+                </div>
+                <button type="submit" style={{ marginTop: '10px' }}>Submit</button>
+              </form>
+            </>
+          )}
         </div>
       </div>
     </div>
