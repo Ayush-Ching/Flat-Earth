@@ -4,6 +4,9 @@ They can also write reviews about the flatness of the place and upload flat imag
 --------------------
 Note : Image upload does not work.
 --------------------
+You can visit the following link to visit the web app :
+>https://flat-earth-f635d.web.app/
+--------------------
 # Setup Instructions
 To use the app, clone the repo in a directory.<br>
 go to the flat-earth directory.<br>
